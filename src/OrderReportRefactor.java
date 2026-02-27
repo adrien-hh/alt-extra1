@@ -3,39 +3,22 @@ import java.nio.file.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import static io.CsvLoaders.*;
+import static domain.Constants.*;
+import static domain.Paths.*;
 
 public class OrderReportRefactor {
 
-  // Constantes globales mal organisées (mélange styles)
-  private static final double TAX = 0.2;
-  private static final double SHIPPING_LIMIT = 50;
-  private static final double SHIP = 5.0;
-  private static final int premium_threshold = 1000;
-  private static final double LOYALTY_RATIO = 0.01;
-  private static double handling_fee = 2.5;
-  public static final double MAX_DISCOUNT = 200;
-
-  private static final String OUTPUT_DIR = "src/output";
-
-  // Méthode principale qui fait TOUT (300+ lignes)
   public static String run() throws IOException {
-    String base = System.getProperty("user.dir") + "/legacy";
-    String custPath = base + "/data/customers.csv";
-    String ordPath = base + "/data/orders.csv";
-    String prodPath = base + "/data/products.csv";
-    String shipPath = base + "/data/shipping_zones.csv";
-    String promoPath = base + "/data/promotions.csv";
 
-    Map<String, Map<String, String>> customers = loadCustomers(custPath);
-    Map<String, Map<String, Object>> products = loadProducts(prodPath);
-    Map<String, Map<String, Double>> shippingZones = loadShippingZones(shipPath);
-    Map<String, Map<String, String>> promotions = loadPromotions(promoPath);
-    List<Map<String, Object>> orders = loadOrders(ordPath);
+    Map<String, Map<String, String>> customers = loadCustomers(CUST_PATH);
+    Map<String, Map<String, Object>> products = loadProducts(PROD_PATH);
+    Map<String, Map<String, Double>> shippingZones = loadShippingZones(SHIP_PATH);
+    Map<String, Map<String, String>> promotions = loadPromotions(PROMO_PATH);
+    List<Map<String, Object>> orders = loadOrders(ORD_PATH);
 
     // Calcul points de fidélité (première duplication)
     Map<String, Double> loyaltyPoints = new HashMap<>();
@@ -252,10 +235,10 @@ public class OrderReportRefactor {
       double handling = 0.0;
       int itemCount = items.size();
       if (itemCount > 10) {
-        handling = handling_fee;
+        handling = HANDLING_FEE;
       }
       if (itemCount > 20) {
-        handling = handling_fee * 2; // double pour grosses commandes
+        handling = HANDLING_FEE * 2; // double pour grosses commandes
       }
 
       // Conversion devise (règle cachée pour non-EUR)
