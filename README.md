@@ -1,83 +1,161 @@
-# Test technique - Extra 1
+# Order Report Refactoring (Legacy)
 
-## 1. Installation
+## Installation
 
 ### Prérequis
-- [Langage] version X.X
-- [Gestionnaire] version Y.Y
+- Java 17 (ou 11, selon votre choix)
+- Maven 3.8+
 
-### Commandes
-
+### Installer les dépendances
 ```bash
-# Commandes pour installer les dépendances
-```
+mvn -q clean test -DskipTests
+````
 
-## 2. Exécution
+---
+
+## Exécution
 
 ### Exécuter le code refactoré
 
 ```bash
-# Commande pour lancer votre code
+mvn -q -DskipTests exec:java -Dexec.mainClass="src.app.OrderReportApp"
 ```
+
+> Remarque : le code refactoré doit lire les mêmes CSV dans `legacy/data/` et produire **exactement** le même texte que le legacy.
 
 ### Exécuter les tests
 
 ```bash
-# Commande pour lancer tous les tests
+mvn test
 ```
 
-### Comparer avec le legacy (validation)
+### Validation non-régression (Golden Master)
+
+Le test Golden Master :
+
+1. exécute le legacy
+2. capture sa sortie
+3. écrit la référence dans `legacy/expected/report.txt` (si absente)
+4. exécute le refactor
+5. compare les sorties strictement
+
+Commande :
 
 ```bash
-# Commande pour comparer les sorties
+mvn -Dtest=GoldenMasterTest test
 ```
 
-## 3. Choix de Refactoring
+---
 
-Expliquez vos **décisions principales** :
+## Choix de Refactoring
 
-### Problèmes Identifiés dans le Legacy
+### Problèmes identifiés dans le legacy
 
-1. **[Nom du smell]** : [Description concise]
-   - Impact : [pourquoi c'était problématique]
+1. **God Method / responsabilités mélangées**
 
-2. **[Autre smell]** : [Description]
-   - Impact : [...]
+   * Impact : I/O, parsing, règles métier, agrégation, formatage et export sont couplés → maintenance et tests difficiles.
 
-### Solutions Apportées
+2. **Typage faible (Map<String, Object>) + casts**
 
-1. **[Amélioration 1]** : [Ce que vous avez fait]
-   - Justification : [pourquoi ce choix]
+   * Impact : erreurs runtime possibles, compréhension difficile, refactor risqué.
 
-2. **[Amélioration 2]** : [Ce que vous avez fait]
-   - Justification : [...]
+3. **Parsing CSV fragile et incohérent**
 
-### Architecture Choisie
+   * Impact : `split(",")`, lecture via plusieurs APIs, erreurs silencieuses → données ignorées sans trace.
 
-[Décrivez brièvement comment vous avez organisé votre code]
-- Modules/packages créés
-- Rôle de chaque module
-- Flux de données
+4. **Magic numbers + règles cachées**
 
-### Exemples Concrets
+   * Impact : règles métier implicites (bonus matin/week-end, paliers shipping/discount) difficiles à isoler/tester.
 
-**Exemple 1 : [Nom du refactoring]**
-- Problème : [code smell spécifique]
-- Solution : [approche retenue]
+5. **Side effects cachés**
 
-**Exemple 2 : [Autre refactoring]**
-- ...
+   * Impact : une même méthode retourne un résultat et fait des écritures (stdout, fichier JSON).
 
-## 4. Limites et Améliorations Futures
+### Solutions apportées
+
+1. **Séparation des couches**
+
+   * `io/` : lecture fichiers, écriture éventuelle
+   * `parsing/` : parse CSV → modèles typés
+   * `domain/` : modèles (Customer, Product, Order, Promotion, Totals)
+   * `service/` : règles (discount, tax, shipping, currency)
+   * `report/` : rendu texte (format strictement identique)
+   * Justification : réduit le couplage, augmente la testabilité, change minimal côté comportement.
+
+2. **Modèles typés**
+
+   * Remplacement progressif des `Map` par des classes immuables (ou records).
+   * Justification : limite les casts, clarifie les champs obligatoires/optionnels.
+
+3. **Isolation des règles métier**
+
+   * Extraction de fonctions pures :
+
+      * `computeLineTotal(...)` (promo + morning bonus)
+      * `computeVolumeDiscount(...)`
+      * `computeLoyaltyDiscount(...)`
+      * `computeTax(...)`
+      * `computeShipping(...)`
+   * Justification : test unitaire simple + moins de régression.
+
+### Architecture choisie
+
+* **Pipeline** :
+
+   1. Load + parse (`legacy/data/*.csv`)
+   2. Build aggregates (totaux par client)
+   3. Compute pricing (discount/tax/shipping/handling/currency)
+   4. Render report (format identique)
+
+* Dépendances :
+   * Standard library + (optionnel) parser CSV léger
+   * JUnit 5 pour tests
+
+### Exemples concrets
+
+**Exemple 1 : Extraction du calcul des remises**
+
+* Problème : paliers dispersés + écrasement de valeurs.
+* Solution : une fonction `computeVolumeDiscount(subtotal, level, dayOfWeek)` qui reproduit strictement la logique existante (bugs inclus).
+
+**Exemple 2 : Golden Master**
+
+* Problème : risque de “corriger” involontairement un bug legacy.
+* Solution : comparaison caractère par caractère avec la sortie legacy.
+
+---
+
+## Limites et améliorations futures
 
 ### Ce qui n'a pas été fait (par manque de temps)
-- [ ] [Amélioration souhaitée]
-- [ ] [Autre amélioration]
 
-### Compromis Assumés
-- [Compromis 1] : [justification]
-- [Compromis 2] : [justification]
+* [ ] Remplacer toutes les règles “hardcodées” par une configuration (YAML/JSON)
+* [ ] Améliorer le parsing CSV (quotes, virgules, encodage) sans changer le comportement
+* [ ] Ajouter des tests d’intégration avec datasets variés
+* [ ] Améliorer la gestion des erreurs (logs), qui sont souvent ignorées
 
-### Pistes d'Amélioration Future
-- [Idée 1]
-- [Idée 2]
+### Compromis assumés
+
+* Conservation volontaire de comportements discutables (bugs legacy) pour respecter la non-régression.
+* Logging limité pour ne pas polluer stdout et casser le Golden Master.
+
+### Pistes d'amélioration
+
+* Externaliser les règles de pricing (discount/shipping/tax) vers une config versionnée.
+* Remplacer les taux de change hardcodés par une source contrôlée (si le métier l’exige).
+* Ajouter une “report model” intermédiaire pour découpler encore plus le rendu.
+
+---
+
+## Commandes utiles (récap)
+
+```bash
+# Tous les tests
+mvn test
+
+# Golden master seulement
+mvn -Dtest=GoldenMasterTest test
+
+# Run app refactorée
+mvn -q -DskipTests exec:java -Dexec.mainClass="src.app.OrderReportApp"
+```
