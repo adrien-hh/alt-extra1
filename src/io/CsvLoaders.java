@@ -2,7 +2,7 @@ package io;
 
 import domain.Customer;
 import domain.Product;
-
+import domain.ShippingZone;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -29,28 +29,6 @@ public class CsvLoaders {
   }
 
   // Lecture products (duplication parsing, méthode différente)
-  public static Map<String, Map<String, Object>> loadProductsRaw() throws IOException {
-    Map<String, Map<String, Object>> products = new HashMap<>();
-    List<String> prodLines = Files.readAllLines(Paths.get(domain.Paths.PROD_PATH));
-    for (int i = 1; i < prodLines.size(); i++) {
-      try {
-        String[] parts = prodLines.get(i).split(",");
-        Map<String, Object> prod = new HashMap<>();
-        prod.put("id", parts[0]);
-        prod.put("name", parts[1]);
-        prod.put("category", parts[2]);
-        prod.put("price", Double.parseDouble(parts[3]));
-        prod.put("weight", parts.length > 4 ? Double.parseDouble(parts[4]) : 1.0);
-        prod.put("taxable", parts.length > 5 ? parts[5].equals("true") : true);
-        products.put(parts[0], prod);
-      } catch (Exception e) {
-        // Skip silencieux
-        continue;
-      }
-    }
-    return products;
-  }
-
   public static Map<String, Product> loadProducts() throws IOException {
     Map<String, Product> products = new HashMap<>();
     List<String> prodLines = Files.readAllLines(Paths.get(domain.Paths.PROD_PATH));
@@ -74,8 +52,8 @@ public class CsvLoaders {
   }
 
   // Lecture shipping zones (encore une autre variation avec Scanner)
-  public static Map<String, Map<String, Double>> loadShippingZones() throws IOException {
-    Map<String, Map<String, Double>> shippingZones = new HashMap<>();
+  public static Map<String, ShippingZone> loadShippingZones() throws IOException {
+    Map<String, ShippingZone> shippingZones = new HashMap<>();
     Scanner shipScanner = new Scanner(new File(domain.Paths.SHIP_PATH));
     if (shipScanner.hasNextLine()) {
       shipScanner.nextLine(); // skip header
@@ -83,10 +61,9 @@ public class CsvLoaders {
     while (shipScanner.hasNextLine()) {
       String ln = shipScanner.nextLine();
       String[] p = ln.split(",");
-      Map<String, Double> zone = new HashMap<>();
-      zone.put("base", Double.parseDouble(p[1]));
-      zone.put("per_kg", p.length > 2 ? Double.parseDouble(p[2]) : 0.5);
-      shippingZones.put(p[0], zone);
+      double base = Double.parseDouble(p[1]);
+      double perKg = p.length > 2 ? Double.parseDouble(p[2]) : 0.5;
+      shippingZones.put(p[0], new ShippingZone(base, perKg));
     }
     shipScanner.close();
     return shippingZones;

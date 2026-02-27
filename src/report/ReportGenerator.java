@@ -5,6 +5,7 @@ import java.util.*;
 import domain.Constants;
 import domain.Customer;
 import domain.Product;
+import domain.ShippingZone;
 import service.PricingService;
 
 public class ReportGenerator {
@@ -14,7 +15,7 @@ public class ReportGenerator {
           Map<String, Map<String, Object>> totalsByCustomer,
           Map<String, Double> loyaltyPoints,
           Map<String, Product> products,
-          Map<String, Map<String, Double>> shippingZones) {
+          Map<String, ShippingZone> shippingZones) {
     // Génération rapport (mélange calculs + formatage + I/O)
     List<String> outputLines = new ArrayList<>();
     List<Map<String, Object>> jsonData = new ArrayList<>();

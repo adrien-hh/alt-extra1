@@ -2,6 +2,7 @@ package service;
 
 import domain.Customer;
 import domain.Product;
+import domain.ShippingZone;
 import io.CsvLoaders;
 import io.ReportOutputs;
 import java.io.IOException;
@@ -14,7 +15,7 @@ public class OrderReportService {
 
     Map<String, Customer> customers = CsvLoaders.loadCustomers();
     Map<String, Product> products = CsvLoaders.loadProducts();
-    Map<String, Map<String, Double>> shippingZones = CsvLoaders.loadShippingZones();
+    Map<String, ShippingZone> shippingZones = CsvLoaders.loadShippingZones();
     Map<String, Map<String, String>> promotions = CsvLoaders.loadPromotions();
     List<Map<String, Object>> orders = CsvLoaders.loadOrders();
 

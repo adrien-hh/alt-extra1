@@ -1,6 +1,7 @@
 package service;
 
 import domain.Product;
+import domain.ShippingZone;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -30,29 +31,21 @@ public class PricingService {
   }
 
   public static double computeShipping(
-      Map<String, Object> totals,
-      double sub,
-      Map<String, Map<String, Double>> shippingZones,
-      double SHIPPING_LIMIT,
-      String zone) {
+          Map<String, Object> totals,
+          double sub,
+          Map<String, ShippingZone> shippingZones,
+          double SHIPPING_LIMIT,
+          String zone) {
     // Frais de port complexes (duplication)
     double ship = 0.0;
     double weight = (Double) totals.get("weight");
 
     if (sub < SHIPPING_LIMIT) {
-      Map<String, Double> shipZone =
-          shippingZones.getOrDefault(
-              zone,
-              new HashMap<String, Double>() {
-                {
-                  put("base", 5.0);
-                  put("per_kg", 0.5);
-                }
-              });
-      double baseShip = shipZone.get("base");
+      ShippingZone shipZone = shippingZones.getOrDefault(zone, new ShippingZone(5.0, 0.5));
+      double baseShip = shipZone.base();
 
       if (weight > 10) {
-        ship = baseShip + (weight - 10) * shipZone.get("per_kg");
+        ship = baseShip + (weight - 10) * shipZone.perKg();
       } else if (weight > 5) {
         // Palier intermédiaire (règle cachée)
         ship = baseShip + (weight - 5) * 0.3;
