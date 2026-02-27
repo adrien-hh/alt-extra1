@@ -5,8 +5,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import io.CsvLoaders;
+import service.LoyaltyService;
 
-import static io.CsvLoaders.*;
 import static domain.Constants.*;
 import static domain.Paths.*;
 
@@ -14,21 +15,15 @@ public class OrderReportRefactor {
 
   public static String run() throws IOException {
 
-    Map<String, Map<String, String>> customers = loadCustomers(CUST_PATH);
-    Map<String, Map<String, Object>> products = loadProducts(PROD_PATH);
-    Map<String, Map<String, Double>> shippingZones = loadShippingZones(SHIP_PATH);
-    Map<String, Map<String, String>> promotions = loadPromotions(PROMO_PATH);
-    List<Map<String, Object>> orders = loadOrders(ORD_PATH);
+    // Chargement des données depuis CSV
+    Map<String, Map<String, String>> customers = CsvLoaders.loadCustomers(CUST_PATH);
+    Map<String, Map<String, Object>> products = CsvLoaders.loadProducts(PROD_PATH);
+    Map<String, Map<String, Double>> shippingZones = CsvLoaders.loadShippingZones(SHIP_PATH);
+    Map<String, Map<String, String>> promotions = CsvLoaders.loadPromotions(PROMO_PATH);
+    List<Map<String, Object>> orders = CsvLoaders.loadOrders(ORD_PATH);
 
-    // Calcul points de fidélité (première duplication)
-    Map<String, Double> loyaltyPoints = new HashMap<>();
-    for (Map<String, Object> o : orders) {
-      String cid = (String) o.get("customer_id");
-      loyaltyPoints.putIfAbsent(cid, 0.0);
-      int qty = (Integer) o.get("qty");
-      double unitPrice = (Double) o.get("unit_price");
-      loyaltyPoints.put(cid, loyaltyPoints.get(cid) + qty * unitPrice * LOYALTY_RATIO);
-    }
+    // Calcul points de fidélité
+    Map<String, Double> loyaltyPoints = LoyaltyService.computeLoyaltyPoints(orders, LOYALTY_RATIO);
 
     // Groupement par client (logique métier mélangée avec aggregation)
     Map<String, Map<String, Object>> totalsByCustomer = new HashMap<>();
