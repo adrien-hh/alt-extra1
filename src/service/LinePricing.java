@@ -1,6 +1,7 @@
 package service;
 
 import domain.Product;
+import domain.Promotion;
 
 import java.util.Map;
 
@@ -9,7 +10,7 @@ public class LinePricing {
   public static LineResult computeLineTotal(
           Map<String, Object> order,
           Product productFallback,
-          Map<String, Map<String, String>> promotions) {
+          Map<String, Promotion> promotions) {
     // Récupération produit avec fallback
     Product prod = productFallback;
     double basePrice = prod.price();
@@ -20,13 +21,13 @@ public class LinePricing {
     double fixedDiscount = 0;
 
     if (promoCode != null && !promoCode.isEmpty() && promotions.containsKey(promoCode)) {
-      Map<String, String> promo = promotions.get(promoCode);
-      if (!promo.get("active").equals("false")) {
-        if (promo.get("type").equals("PERCENTAGE")) {
-          discountRate = Double.parseDouble(promo.get("value")) / 100;
-        } else if (promo.get("type").equals("FIXED")) {
+      Promotion promo = promotions.get(promoCode);
+      if (!promo.active().equals("false")) {
+        if (promo.type().equals("PERCENTAGE")) {
+          discountRate = Double.parseDouble(promo.value()) / 100;
+        } else if (promo.type().equals("FIXED")) {
           // Bug: appliqué par ligne au lieu de global
-          fixedDiscount = Double.parseDouble(promo.get("value"));
+          fixedDiscount = Double.parseDouble(promo.value());
         }
       }
     }

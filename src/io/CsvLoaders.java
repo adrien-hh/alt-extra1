@@ -2,6 +2,7 @@ package io;
 
 import domain.Customer;
 import domain.Product;
+import domain.Promotion;
 import domain.ShippingZone;
 import java.io.*;
 import java.nio.file.Files;
@@ -70,20 +71,19 @@ public class CsvLoaders {
   }
 
   // Lecture promotions (parsing avec try-catch global)
-  public static Map<String, Map<String, String>> loadPromotions() throws IOException {
-    Map<String, Map<String, String>> promotions = new HashMap<>();
+  public static Map<String, Promotion> loadPromotions() throws IOException {
+    Map<String, Promotion> promotions = new HashMap<>();
     try {
       BufferedReader promoReader = new BufferedReader(new FileReader(domain.Paths.PROMO_PATH));
       promoReader.readLine(); // header
       String promoLine;
       while ((promoLine = promoReader.readLine()) != null) {
         String[] p = promoLine.split(",");
-        Map<String, String> promo = new HashMap<>();
-        promo.put("code", p[0]);
-        promo.put("type", p[1]);
-        promo.put("value", p[2]);
-        promo.put("active", p.length > 3 ? p[3] : "true");
-        promotions.put(p[0], promo);
+        String code = p[0];
+        String type = p[1];
+        String value = p[2];
+        String active = p.length > 3 ? p[3] : "true";
+        promotions.put(p[0], new Promotion(code, type, value, active));
       }
       promoReader.close();
     } catch (FileNotFoundException e) {
