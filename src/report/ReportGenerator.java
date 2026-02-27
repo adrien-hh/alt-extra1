@@ -3,16 +3,18 @@ package report;
 import java.util.*;
 
 import domain.Constants;
+import domain.Customer;
+import domain.Product;
 import service.PricingService;
 
 public class ReportGenerator {
 
   public static ReportResult generate(
-      Map<String, Map<String, String>> customers,
-      Map<String, Map<String, Object>> totalsByCustomer,
-      Map<String, Double> loyaltyPoints,
-      Map<String, Map<String, Object>> products,
-      Map<String, Map<String, Double>> shippingZones) {
+          Map<String, Customer> customers,
+          Map<String, Map<String, Object>> totalsByCustomer,
+          Map<String, Double> loyaltyPoints,
+          Map<String, Product> products,
+          Map<String, Map<String, Double>> shippingZones) {
     // Génération rapport (mélange calculs + formatage + I/O)
     List<String> outputLines = new ArrayList<>();
     List<Map<String, Object>> jsonData = new ArrayList<>();
@@ -24,11 +26,11 @@ public class ReportGenerator {
     Collections.sort(sortedCustomerIds);
 
     for (String cid : sortedCustomerIds) {
-      Map<String, String> cust = customers.getOrDefault(cid, new HashMap<>());
-      String name = cust.getOrDefault("name", "Unknown");
-      String level = cust.getOrDefault("level", "BASIC");
-      String zone = cust.getOrDefault("shipping_zone", "ZONE1");
-      String currency = cust.getOrDefault("currency", "EUR");
+      Customer cust = customers.getOrDefault(cid, new Customer(cid, "Unknown", "BASIC", "ZONE1", "EUR"));
+      String name = cust.name();
+      String level = cust.level();
+      String zone = cust.shippingZone();
+      String currency = cust.currency();
 
       Map<String, Object> totals = totalsByCustomer.get(cid);
       double sub = (Double) totals.get("subtotal");

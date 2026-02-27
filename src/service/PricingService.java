@@ -1,5 +1,7 @@
 package service;
 
+import domain.Product;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -72,17 +74,17 @@ public class PricingService {
   }
 
   public static double computeTax(
-      double taxable,
-      List<Map<String, Object>> items,
-      Map<String, Map<String, Object>> products,
-      double TAX) {
+          double taxable,
+          List<Map<String, Object>> items,
+          Map<String, Product> products,
+          double TAX) {
     double tax = 0.0;
 
     // Vérifier si tous produits taxables
     boolean allTaxable = true;
     for (Map<String, Object> item : items) {
-      Map<String, Object> prod = products.get(item.get("product_id"));
-      if (prod != null && prod.containsKey("taxable") && !(Boolean) prod.get("taxable")) {
+      Product prod = products.get(item.get("product_id"));
+      if (prod != null && !prod.taxable()) {
         allTaxable = false;
         break;
       }
@@ -93,12 +95,9 @@ public class PricingService {
     } else {
       // Calcul taxe par ligne (plus complexe)
       for (Map<String, Object> item : items) {
-        Map<String, Object> prod = products.get(item.get("product_id"));
-        if (prod != null && (!(prod.containsKey("taxable")) || (Boolean) prod.get("taxable"))) {
-          double itemPrice =
-              prod.containsKey("price")
-                  ? (Double) prod.get("price")
-                  : (Double) item.get("unit_price");
+        Product prod = products.get(item.get("product_id"));
+        if (prod != null && prod.taxable()) {
+          double itemPrice = prod.price();
           int itemQty = (Integer) item.get("qty");
           tax += itemQty * itemPrice * TAX;
         }

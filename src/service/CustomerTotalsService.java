@@ -1,5 +1,6 @@
 package service;
 
+import domain.Product;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,7 +11,7 @@ public class CustomerTotalsService {
   // Groupement par client (logique métier mélangée avec aggregation)
   public static Map<String, Map<String, Object>> computeTotalsByCustomer(
       List<Map<String, Object>> orders,
-      Map<String, Map<String, Object>> products,
+      Map<String, Product> products,
       Map<String, Map<String, String>> promotions) {
 
     Map<String, Map<String, Object>> totalsByCustomer = new HashMap<>();
@@ -19,7 +20,7 @@ public class CustomerTotalsService {
       String cid = (String) o.get("customer_id");
 
       // Récupération produit avec fallback
-      Map<String, Object> prod = products.getOrDefault(o.get("product_id"), new HashMap<>());
+      Product prod = products.get(o.get("product_id"));
 
       LinePricing.LineResult priced = LinePricing.computeLineTotal(o, prod, promotions);
 
@@ -35,7 +36,7 @@ public class CustomerTotalsService {
 
       Map<String, Object> totals = totalsByCustomer.get(cid);
       totals.put("subtotal", (Double) totals.get("subtotal") + priced.lineTotal);
-      double weight = prod.containsKey("weight") ? (Double) prod.get("weight") : 1.0;
+      double weight = (prod != null) ? prod.weight() : 1.0;
       totals.put("weight", (Double) totals.get("weight") + weight * priced.qty);
       ((List<Map<String, Object>>) totals.get("items")).add(o);
       totals.put("morning_bonus", (Double) totals.get("morning_bonus") + priced.morningBonus);

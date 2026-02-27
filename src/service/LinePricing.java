@@ -1,17 +1,18 @@
 package service;
 
+import domain.Product;
+
 import java.util.Map;
 
 public class LinePricing {
 
   public static LineResult computeLineTotal(
-      Map<String, Object> order,
-      Map<String, Object> productFallback,
-      Map<String, Map<String, String>> promotions) {
+          Map<String, Object> order,
+          Product productFallback,
+          Map<String, Map<String, String>> promotions) {
     // Récupération produit avec fallback
-    Map<String, Object> prod = productFallback;
-    double basePrice =
-        prod.containsKey("price") ? (Double) prod.get("price") : (Double) order.get("unit_price");
+    Product prod = productFallback;
+    double basePrice = prod.price();
 
     // Application promo (logique complexe et bugguée)
     String promoCode = (String) order.get("promo_code");
@@ -49,9 +50,9 @@ public class LinePricing {
     public final double lineTotal;
     public final double morningBonus;
     public final int qty;
-    public final Map<String, Object> product;
+    public final Product product;
 
-    public LineResult(double lineTotal, double morningBonus, int qty, Map<String, Object> product) {
+    public LineResult(double lineTotal, double morningBonus, int qty, Product product) {
       this.lineTotal = lineTotal;
       this.morningBonus = morningBonus;
       this.qty = qty;

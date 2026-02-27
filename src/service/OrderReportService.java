@@ -1,5 +1,7 @@
 package service;
 
+import domain.Customer;
+import domain.Product;
 import io.CsvLoaders;
 import io.ReportOutputs;
 import java.io.IOException;
@@ -10,8 +12,8 @@ public class OrderReportService {
 
   public static String run() throws IOException {
 
-    Map<String, Map<String, String>> customers = CsvLoaders.loadCustomers();
-    Map<String, Map<String, Object>> products = CsvLoaders.loadProducts();
+    Map<String, Customer> customers = CsvLoaders.loadCustomers();
+    Map<String, Product> products = CsvLoaders.loadProducts();
     Map<String, Map<String, Double>> shippingZones = CsvLoaders.loadShippingZones();
     Map<String, Map<String, String>> promotions = CsvLoaders.loadPromotions();
     List<Map<String, Object>> orders = CsvLoaders.loadOrders();
