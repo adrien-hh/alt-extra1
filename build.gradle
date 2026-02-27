@@ -1,0 +1,44 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.company'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Gson pour JSON
+    implementation 'com.google.code.gson:gson:2.10.1'
+    
+    // JUnit 5
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+}
+
+application {
+    mainClass = 'legacy.OrderReportLegacy'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.register('runLegacy', JavaExec) {
+    group = 'application'
+    description = 'Run the legacy order report'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'legacy.OrderReportLegacy'
+}
+
+// Configuration encoding
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
