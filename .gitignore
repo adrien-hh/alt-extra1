@@ -4,3 +4,4 @@ livrable-attendu.md
 order-report-legacy.iml
 legacy/output.json
 legacy/expected/report.txt
+/target/
