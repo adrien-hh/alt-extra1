@@ -8,8 +8,8 @@
 
 ### Installer les dépendances
 ```bash
-mvn -q clean test -DskipTests
-````
+mvn install
+```
 
 ---
 
@@ -18,7 +18,7 @@ mvn -q clean test -DskipTests
 ### Exécuter le code refactoré
 
 ```bash
-mvn -q -DskipTests exec:java -Dexec.mainClass="src.app.OrderReportApp"
+mvn exec:java "-Dexec.mainClass=OrderReportApp"
 ```
 
 > Remarque : le code refactoré doit lire les mêmes CSV dans `legacy/data/` et produire **exactement** le même texte que le legacy.
@@ -76,7 +76,6 @@ mvn -Dtest=GoldenMasterTest test
 1. **Séparation des couches**
 
    * `io/` : lecture fichiers, écriture éventuelle
-   * `parsing/` : parse CSV → modèles typés
    * `domain/` : modèles (Customer, Product, Order, Promotion, Totals)
    * `service/` : règles (discount, tax, shipping, currency)
    * `report/` : rendu texte (format strictement identique)
@@ -85,7 +84,7 @@ mvn -Dtest=GoldenMasterTest test
 2. **Modèles typés**
 
    * Remplacement progressif des `Map` par des classes immuables (ou records).
-   * Justification : limite les casts, clarifie les champs obligatoires/optionnels.
+   * Justification : reduction d'erreurs, limite les casts, clarifie les champs obligatoires/optionnels.
 
 3. **Isolation des règles métier**
 
@@ -97,6 +96,18 @@ mvn -Dtest=GoldenMasterTest test
       * `computeTax(...)`
       * `computeShipping(...)`
    * Justification : test unitaire simple + moins de régression.
+
+4. **Tests**
+
+- 1 Golden Master (non-régression globale)
+- Tests unitaires ciblés sur :
+    - calcul des remises
+    - calcul des taxes
+    - frais de port
+    - bonus matin
+    - promotions (PERCENTAGE / FIXED)
+
+Objectif : sécuriser les règles à paliers et les branches conditionnelles.
 
 ### Architecture choisie
 
@@ -129,6 +140,7 @@ mvn -Dtest=GoldenMasterTest test
 
 ### Ce qui n'a pas été fait (par manque de temps)
 
+* [ ] Terminer la séparation des responsabilités (ex: ReportGenerator qui fait encore à la fois des calculs métier et du formattage)
 * [ ] Remplacer toutes les règles “hardcodées” par une configuration (YAML/JSON)
 * [ ] Améliorer le parsing CSV (quotes, virgules, encodage) sans changer le comportement
 * [ ] Ajouter des tests d’intégration avec datasets variés
@@ -157,5 +169,5 @@ mvn test
 mvn -Dtest=GoldenMasterTest test
 
 # Run app refactorée
-mvn -q -DskipTests exec:java -Dexec.mainClass="src.app.OrderReportApp"
+mvn exec:java "-Dexec.mainClass=OrderReportApp"
 ```
