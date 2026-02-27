@@ -7,10 +7,10 @@ import java.util.*;
 
 public class CsvLoaders {
     // Lecture customers (parsing mélangé avec logique)
-    public static Map<String, Map<String, String>> loadCustomers(String custPath)
+    public static Map<String, Map<String, String>> loadCustomers()
             throws IOException {
         Map<String, Map<String, String>> customers = new HashMap<>();
-        BufferedReader custReader = new BufferedReader(new FileReader(custPath));
+        BufferedReader custReader = new BufferedReader(new FileReader(domain.Paths.CUST_PATH));
         String line = custReader.readLine(); // skip header
         while ((line = custReader.readLine()) != null) {
             String[] parts = line.split(",");
@@ -27,9 +27,9 @@ public class CsvLoaders {
     }
 
     // Lecture products (duplication parsing, méthode différente)
-    public static Map<String, Map<String, Object>> loadProducts(String prodPath) throws IOException {
+    public static Map<String, Map<String, Object>> loadProducts() throws IOException {
         Map<String, Map<String, Object>> products = new HashMap<>();
-        List<String> prodLines = Files.readAllLines(Paths.get(prodPath));
+        List<String> prodLines = Files.readAllLines(Paths.get(domain.Paths.PROD_PATH));
         for (int i = 1; i < prodLines.size(); i++) {
             try {
                 String[] parts = prodLines.get(i).split(",");
@@ -50,10 +50,10 @@ public class CsvLoaders {
     }
 
     // Lecture shipping zones (encore une autre variation avec Scanner)
-    public static Map<String, Map<String, Double>> loadShippingZones(String shipPath)
+    public static Map<String, Map<String, Double>> loadShippingZones()
             throws IOException {
         Map<String, Map<String, Double>> shippingZones = new HashMap<>();
-        Scanner shipScanner = new Scanner(new File(shipPath));
+        Scanner shipScanner = new Scanner(new File(domain.Paths.SHIP_PATH));
         if (shipScanner.hasNextLine()) {
             shipScanner.nextLine(); // skip header
         }
@@ -70,10 +70,10 @@ public class CsvLoaders {
     }
 
     // Lecture promotions (parsing avec try-catch global)
-    public static Map<String, Map<String, String>> loadPromotions(String promoPath) throws IOException {
+    public static Map<String, Map<String, String>> loadPromotions() throws IOException {
         Map<String, Map<String, String>> promotions = new HashMap<>();
         try {
-            BufferedReader promoReader = new BufferedReader(new FileReader(promoPath));
+            BufferedReader promoReader = new BufferedReader(new FileReader(domain.Paths.PROMO_PATH));
             promoReader.readLine(); // header
             String promoLine;
             while ((promoLine = promoReader.readLine()) != null) {
@@ -93,9 +93,9 @@ public class CsvLoaders {
     }
 
     // Lecture orders (mélange parsing et validation)
-    public static List<Map<String, Object>> loadOrders(String ordPath) throws IOException {
+    public static List<Map<String, Object>> loadOrders() throws IOException {
         List<Map<String, Object>> orders = new ArrayList<>();
-        BufferedReader ordReader = new BufferedReader(new FileReader(ordPath));
+        BufferedReader ordReader = new BufferedReader(new FileReader(domain.Paths.ORD_PATH));
         ordReader.readLine(); // skip header
         String ordLine;
         while ((ordLine = ordReader.readLine()) != null) {

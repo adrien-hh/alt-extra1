@@ -72,12 +72,10 @@ public class PricingService {
   }
 
   public static double computeTax(
-      double sub,
-      double totalDiscount,
+      double taxable,
       List<Map<String, Object>> items,
       Map<String, Map<String, Object>> products,
       double TAX) {
-    double taxable = sub - totalDiscount;
     double tax = 0.0;
 
     // Vérifier si tous produits taxables

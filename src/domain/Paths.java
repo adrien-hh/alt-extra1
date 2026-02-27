@@ -9,4 +9,5 @@ public class Paths {
     public static final String PROD_PATH = BASE + "/data/products.csv";
     public static final String SHIP_PATH = BASE + "/data/shipping_zones.csv";
     public static final String PROMO_PATH = BASE + "/data/promotions.csv";
+    public static final String JSON_FILENAME = "/output.json";
 }

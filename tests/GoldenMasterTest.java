@@ -57,7 +57,7 @@ public class GoldenMasterTest {
   }
 
   private static String runRefactored() throws Exception {
-    return captureOutput(() -> OrderReportRefactor.main(new String[] {}));
+    return captureOutput(() -> OrderReportApp.main(new String[] {}));
   }
 
   private static String captureOutput(RunnableWithException code) throws Exception {
