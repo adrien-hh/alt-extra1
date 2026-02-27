@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.CsvLoaders;
 import service.LoyaltyService;
+import service.CustomerTotalsService;
 
 import static domain.Constants.*;
 import static domain.Paths.*;
@@ -26,62 +27,8 @@ public class OrderReportRefactor {
     Map<String, Double> loyaltyPoints = LoyaltyService.computeLoyaltyPoints(orders, LOYALTY_RATIO);
 
     // Groupement par client (logique métier mélangée avec aggregation)
-    Map<String, Map<String, Object>> totalsByCustomer = new HashMap<>();
-    for (Map<String, Object> o : orders) {
-      String cid = (String) o.get("customer_id");
-
-      // Récupération produit avec fallback
-      Map<String, Object> prod = products.getOrDefault(o.get("product_id"), new HashMap<>());
-      double basePrice =
-          prod.containsKey("price") ? (Double) prod.get("price") : (Double) o.get("unit_price");
-
-      // Application promo (logique complexe et bugguée)
-      String promoCode = (String) o.get("promo_code");
-      double discountRate = 0;
-      double fixedDiscount = 0;
-
-      if (promoCode != null && !promoCode.isEmpty() && promotions.containsKey(promoCode)) {
-        Map<String, String> promo = promotions.get(promoCode);
-        if (!promo.get("active").equals("false")) {
-          if (promo.get("type").equals("PERCENTAGE")) {
-            discountRate = Double.parseDouble(promo.get("value")) / 100;
-          } else if (promo.get("type").equals("FIXED")) {
-            // Bug: appliqué par ligne au lieu de global
-            fixedDiscount = Double.parseDouble(promo.get("value"));
-          }
-        }
-      }
-
-      // Calcul ligne avec réduction promo
-      int qty = (Integer) o.get("qty");
-      double lineTotal = qty * basePrice * (1 - discountRate) - fixedDiscount * qty;
-
-      // Bonus matin (règle cachée basée sur heure)
-      String time = (String) o.get("time");
-      int hour = Integer.parseInt(time.split(":")[0]);
-      double morningBonus = 0;
-      if (hour < 10) {
-        morningBonus = lineTotal * 0.03; // 3% réduction supplémentaire
-      }
-      lineTotal = lineTotal - morningBonus;
-
-      if (!totalsByCustomer.containsKey(cid)) {
-        Map<String, Object> totals = new HashMap<>();
-        totals.put("subtotal", 0.0);
-        totals.put("items", new ArrayList<Map<String, Object>>());
-        totals.put("weight", 0.0);
-        totals.put("promo_discount", 0.0);
-        totals.put("morning_bonus", 0.0);
-        totalsByCustomer.put(cid, totals);
-      }
-
-      Map<String, Object> totals = totalsByCustomer.get(cid);
-      totals.put("subtotal", (Double) totals.get("subtotal") + lineTotal);
-      double weight = prod.containsKey("weight") ? (Double) prod.get("weight") : 1.0;
-      totals.put("weight", (Double) totals.get("weight") + weight * qty);
-      ((List<Map<String, Object>>) totals.get("items")).add(o);
-      totals.put("morning_bonus", (Double) totals.get("morning_bonus") + morningBonus);
-    }
+    Map<String, Map<String, Object>> totalsByCustomer =
+            CustomerTotalsService.computeTotalsByCustomer(orders, products, promotions);
 
     // Génération rapport (mélange calculs + formatage + I/O)
     List<String> outputLines = new ArrayList<>();
