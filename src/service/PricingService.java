@@ -3,7 +3,6 @@ package service;
 import domain.Order;
 import domain.Product;
 import domain.ShippingZone;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -32,16 +31,16 @@ public class PricingService {
   }
 
   public static double computeShipping(
-          Map<String, Object> totals,
-          double sub,
-          Map<String, ShippingZone> shippingZones,
-          double SHIPPING_LIMIT,
-          String zone) {
+      Map<String, Object> totals,
+      double sub,
+      Map<String, ShippingZone> shippingZones,
+      double shippingLimit,
+      String zone) {
     // Frais de port complexes (duplication)
     double ship = 0.0;
     double weight = (Double) totals.get("weight");
 
-    if (sub < SHIPPING_LIMIT) {
+    if (sub < shippingLimit) {
       ShippingZone shipZone = shippingZones.getOrDefault(zone, new ShippingZone(5.0, 0.5));
       double baseShip = shipZone.base();
 
@@ -68,10 +67,7 @@ public class PricingService {
   }
 
   public static double computeTax(
-          double taxable,
-          List<Order> items,
-          Map<String, Product> products,
-          double TAX) {
+      double taxable, List<Order> items, Map<String, Product> products, double taxRate) {
     double tax = 0.0;
 
     // Vérifier si tous produits taxables
@@ -85,7 +81,7 @@ public class PricingService {
     }
 
     if (allTaxable) {
-      tax = Math.round(taxable * TAX * 100.0) / 100.0; // Arrondi 2 décimales
+      tax = Math.round(taxable * taxRate * 100.0) / 100.0; // Arrondi 2 décimales
     } else {
       // Calcul taxe par ligne (plus complexe)
       for (Order item : items) {
@@ -93,7 +89,7 @@ public class PricingService {
         if (prod != null && prod.taxable()) {
           double itemPrice = prod.price();
           int itemQty = item.qty();
-          tax += itemQty * itemPrice * TAX;
+          tax += itemQty * itemPrice * taxRate;
         }
       }
       tax = Math.round(tax * 100.0) / 100.0;
@@ -102,12 +98,20 @@ public class PricingService {
   }
 
   public static Discounts computeDiscounts(
-          double sub, String level, List<Order> items, double pts, double maxDiscount) {
+      double sub, String level, List<Order> items, double pts, double maxDiscount) {
     double disc = 0.0;
-    if (sub > 50) disc = sub * 0.05;
-    if (sub > 100) disc = sub * 0.10;
-    if (sub > 500) disc = sub * 0.15;
-    if (sub > 1000 && level.equals("PREMIUM")) disc = sub * 0.20;
+    if (sub > 50) {
+      disc = sub * 0.05;
+    }
+    if (sub > 100) {
+      disc = sub * 0.10;
+    }
+    if (sub > 500) {
+      disc = sub * 0.15;
+    }
+    if (sub > 1000 && level.equals("PREMIUM")) {
+      disc = sub * 0.20;
+    }
 
     int dayOfWeek = 0;
     String firstOrderDate = items.size() > 0 ? (String) items.get(0).date() : "";
@@ -127,8 +131,12 @@ public class PricingService {
     }
 
     double loyaltyDiscount = 0.0;
-    if (pts > 100) loyaltyDiscount = Math.min(pts * 0.1, 50.0);
-    if (pts > 500) loyaltyDiscount = Math.min(pts * 0.15, 100.0);
+    if (pts > 100) {
+      loyaltyDiscount = Math.min(pts * 0.1, 50.0);
+    }
+    if (pts > 500) {
+      loyaltyDiscount = Math.min(pts * 0.15, 100.0);
+    }
 
     double totalDiscount = disc + loyaltyDiscount;
     if (totalDiscount > maxDiscount) {

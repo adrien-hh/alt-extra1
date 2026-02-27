@@ -3,7 +3,6 @@ package service;
 import domain.Order;
 import domain.Product;
 import domain.Promotion;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,9 +12,7 @@ public class CustomerTotalsService {
 
   // Groupement par client (logique métier mélangée avec aggregation)
   public static Map<String, Map<String, Object>> computeTotalsByCustomer(
-          List<Order> orders,
-          Map<String, Product> products,
-          Map<String, Promotion> promotions) {
+      List<Order> orders, Map<String, Product> products, Map<String, Promotion> promotions) {
 
     Map<String, Map<String, Object>> totalsByCustomer = new HashMap<>();
 

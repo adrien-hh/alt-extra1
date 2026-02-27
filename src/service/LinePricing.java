@@ -3,15 +3,12 @@ package service;
 import domain.Order;
 import domain.Product;
 import domain.Promotion;
-
 import java.util.Map;
 
 public class LinePricing {
 
   public static LineResult computeLineTotal(
-          Order order,
-          Product productFallback,
-          Map<String, Promotion> promotions) {
+      Order order, Product productFallback, Map<String, Promotion> promotions) {
     // Récupération produit avec fallback
     Product prod = productFallback;
     double basePrice = prod.price();

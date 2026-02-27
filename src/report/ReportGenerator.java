@@ -1,18 +1,17 @@
 package report;
 
-import java.util.*;
-
 import domain.*;
+import java.util.*;
 import service.PricingService;
 
 public class ReportGenerator {
 
   public static ReportResult generate(
-          Map<String, Customer> customers,
-          Map<String, Map<String, Object>> totalsByCustomer,
-          Map<String, Double> loyaltyPoints,
-          Map<String, Product> products,
-          Map<String, ShippingZone> shippingZones) {
+      Map<String, Customer> customers,
+      Map<String, Map<String, Object>> totalsByCustomer,
+      Map<String, Double> loyaltyPoints,
+      Map<String, Product> products,
+      Map<String, ShippingZone> shippingZones) {
     // Génération rapport (mélange calculs + formatage + I/O)
     List<String> outputLines = new ArrayList<>();
     List<Map<String, Object>> jsonData = new ArrayList<>();
@@ -24,7 +23,8 @@ public class ReportGenerator {
     Collections.sort(sortedCustomerIds);
 
     for (String cid : sortedCustomerIds) {
-      Customer cust = customers.getOrDefault(cid, new Customer(cid, "Unknown", "BASIC", "ZONE1", "EUR"));
+      Customer cust =
+          customers.getOrDefault(cid, new Customer(cid, "Unknown", "BASIC", "ZONE1", "EUR"));
       String name = cust.name();
       String level = cust.level();
       String zone = cust.shippingZone();
@@ -38,11 +38,8 @@ public class ReportGenerator {
       double pts = loyaltyPoints.getOrDefault(cid, 0.0);
 
       PricingService.Discounts discounts =
-          PricingService.computeDiscounts(
-              sub, level, items, pts, Constants.MAX_DISCOUNT);
+          PricingService.computeDiscounts(sub, level, items, pts, Constants.MAX_DISCOUNT);
 
-      double disc = discounts.volumeDiscount;
-      double loyaltyDiscount = discounts.loyaltyDiscount;
       double totalDiscount = discounts.totalDiscount;
 
       // Calcul taxe (gestion spéciale par produit)
@@ -51,7 +48,8 @@ public class ReportGenerator {
 
       // Frais de port complexes (duplication)
       double ship =
-          PricingService.computeShipping(totals, sub, shippingZones, Constants.SHIPPING_LIMIT, zone);
+          PricingService.computeShipping(
+              totals, sub, shippingZones, Constants.SHIPPING_LIMIT, zone);
 
       // Frais de gestion
       double handling = PricingService.computeHandling(items.size(), Constants.HANDLING_FEE);
@@ -68,8 +66,8 @@ public class ReportGenerator {
       outputLines.add(String.format("Level: %s | Zone: %s | Currency: %s", level, zone, currency));
       outputLines.add(String.format("Subtotal: %.2f", sub));
       outputLines.add(String.format("Discount: %.2f", totalDiscount));
-      outputLines.add(String.format("  - Volume discount: %.2f", disc));
-      outputLines.add(String.format("  - Loyalty discount: %.2f", loyaltyDiscount));
+      outputLines.add(String.format("  - Volume discount: %.2f", discounts.volumeDiscount));
+      outputLines.add(String.format("  - Loyalty discount: %.2f", discounts.loyaltyDiscount));
       double morningBonus = (Double) totals.get("morning_bonus");
       if (morningBonus > 0) {
         outputLines.add(String.format("  - Morning bonus: %.2f", morningBonus));
