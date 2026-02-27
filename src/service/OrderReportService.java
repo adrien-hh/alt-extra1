@@ -1,0 +1,33 @@
+package service;
+
+import io.CsvLoaders;
+import io.ReportOutputs;
+import java.io.IOException;
+import java.util.*;
+import report.ReportGenerator;
+
+public class OrderReportService {
+
+  public static String run() throws IOException {
+
+    Map<String, Map<String, String>> customers = CsvLoaders.loadCustomers();
+    Map<String, Map<String, Object>> products = CsvLoaders.loadProducts();
+    Map<String, Map<String, Double>> shippingZones = CsvLoaders.loadShippingZones();
+    Map<String, Map<String, String>> promotions = CsvLoaders.loadPromotions();
+    List<Map<String, Object>> orders = CsvLoaders.loadOrders();
+
+    Map<String, Double> loyaltyPoints = LoyaltyService.computeLoyaltyPoints(orders);
+
+    Map<String, Map<String, Object>> totalsByCustomer =
+        CustomerTotalsService.computeTotalsByCustomer(orders, products, promotions);
+
+    ReportGenerator.ReportResult res =
+        ReportGenerator.generate(
+            customers, totalsByCustomer, loyaltyPoints, products, shippingZones);
+
+    ReportOutputs.printReport(res.report);
+    ReportOutputs.writeJson(res.jsonData);
+
+    return res.report;
+  }
+}
