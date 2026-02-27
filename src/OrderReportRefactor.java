@@ -18,6 +18,8 @@ public class OrderReportRefactor {
   private static double handling_fee = 2.5;
   public static final double MAX_DISCOUNT = 200;
 
+  private static final String OUTPUT_DIR = "src/output";
+
   // Méthode principale qui fait TOUT (300+ lignes)
   public static String run() throws IOException {
     String base = System.getProperty("user.dir") + "/legacy";
@@ -314,7 +316,8 @@ public class OrderReportRefactor {
     System.out.println(result);
 
     // Export JSON surprise
-    String outputPath = base + "/output.json";
+    Files.createDirectories(Paths.get(OUTPUT_DIR));
+    String outputPath = OUTPUT_DIR + "/output.json";
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
     FileWriter writer = new FileWriter(outputPath);
     gson.toJson(jsonData, writer);

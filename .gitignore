@@ -5,3 +5,4 @@ order-report-legacy.iml
 legacy/output.json
 legacy/expected/report.txt
 /target/
+/src/output/output.json
