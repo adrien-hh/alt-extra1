@@ -8,7 +8,6 @@ import java.util.Map;
 
 public class LoyaltyService {
 
-  // Calcul points de fidélité (première duplication)
   public static Map<String, Double> computeLoyaltyPoints(List<Order> orders) {
     Map<String, Double> loyaltyPoints = new HashMap<>();
     for (Order o : orders) {

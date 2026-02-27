@@ -35,7 +35,7 @@ public class LinePricing {
     double lineTotal = qty * basePrice * (1 - discountRate) - fixedDiscount * qty;
 
     // Bonus matin (règle cachée basée sur heure)
-    String time = (String) order.time();
+    String time = order.time();
     int hour = Integer.parseInt(time.split(":")[0]);
     double morningBonus = 0;
     if (hour < 10) {
