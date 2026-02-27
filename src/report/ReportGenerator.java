@@ -1,6 +1,8 @@
 package report;
 
 import java.util.*;
+
+import domain.Constants;
 import service.PricingService;
 
 public class ReportGenerator {
@@ -10,11 +12,7 @@ public class ReportGenerator {
       Map<String, Map<String, Object>> totalsByCustomer,
       Map<String, Double> loyaltyPoints,
       Map<String, Map<String, Object>> products,
-      Map<String, Map<String, Double>> shippingZones,
-      double TAX,
-      double SHIPPING_LIMIT,
-      double HANDLING_FEE,
-      double MAX_DISCOUNT) {
+      Map<String, Map<String, Double>> shippingZones) {
     // Génération rapport (mélange calculs + formatage + I/O)
     List<String> outputLines = new ArrayList<>();
     List<Map<String, Object>> jsonData = new ArrayList<>();
@@ -40,7 +38,8 @@ public class ReportGenerator {
       double pts = loyaltyPoints.getOrDefault(cid, 0.0);
 
       PricingService.Discounts discounts =
-          PricingService.computeDiscounts(sub, level, items, pts, MAX_DISCOUNT);
+          PricingService.computeDiscounts(
+              sub, level, items, pts, Constants.MAX_DISCOUNT);
 
       double disc = discounts.volumeDiscount;
       double loyaltyDiscount = discounts.loyaltyDiscount;
@@ -48,14 +47,14 @@ public class ReportGenerator {
 
       // Calcul taxe (gestion spéciale par produit)
       double taxable = sub - totalDiscount;
-      double tax = PricingService.computeTax(sub, totalDiscount, items, products, TAX);
+      double tax = PricingService.computeTax(taxable, items, products, Constants.TAX);
 
       // Frais de port complexes (duplication)
       double ship =
-          PricingService.computeShipping(totals, sub, shippingZones, SHIPPING_LIMIT, zone);
+          PricingService.computeShipping(totals, sub, shippingZones, Constants.SHIPPING_LIMIT, zone);
 
       // Frais de gestion
-      double handling = PricingService.computeHandling(items.size(), HANDLING_FEE);
+      double handling = PricingService.computeHandling(items.size(), Constants.HANDLING_FEE);
 
       // Conversion devise
       double currencyRate = PricingService.computeCurrencyRate(currency);
