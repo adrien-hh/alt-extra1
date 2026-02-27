@@ -1,9 +1,6 @@
 package service;
 
-import domain.Customer;
-import domain.Product;
-import domain.Promotion;
-import domain.ShippingZone;
+import domain.*;
 import io.CsvLoaders;
 import io.ReportOutputs;
 import java.io.IOException;
@@ -18,7 +15,7 @@ public class OrderReportService {
     Map<String, Product> products = CsvLoaders.loadProducts();
     Map<String, ShippingZone> shippingZones = CsvLoaders.loadShippingZones();
     Map<String, Promotion> promotions = CsvLoaders.loadPromotions();
-    List<Map<String, Object>> orders = CsvLoaders.loadOrders();
+    List<Order> orders = CsvLoaders.loadOrders();
 
     Map<String, Double> loyaltyPoints = LoyaltyService.computeLoyaltyPoints(orders);
 

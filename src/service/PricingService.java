@@ -1,5 +1,6 @@
 package service;
 
+import domain.Order;
 import domain.Product;
 import domain.ShippingZone;
 
@@ -68,15 +69,15 @@ public class PricingService {
 
   public static double computeTax(
           double taxable,
-          List<Map<String, Object>> items,
+          List<Order> items,
           Map<String, Product> products,
           double TAX) {
     double tax = 0.0;
 
     // Vérifier si tous produits taxables
     boolean allTaxable = true;
-    for (Map<String, Object> item : items) {
-      Product prod = products.get(item.get("product_id"));
+    for (Order item : items) {
+      Product prod = products.get(item.productId());
       if (prod != null && !prod.taxable()) {
         allTaxable = false;
         break;
@@ -87,11 +88,11 @@ public class PricingService {
       tax = Math.round(taxable * TAX * 100.0) / 100.0; // Arrondi 2 décimales
     } else {
       // Calcul taxe par ligne (plus complexe)
-      for (Map<String, Object> item : items) {
-        Product prod = products.get(item.get("product_id"));
+      for (Order item : items) {
+        Product prod = products.get(item.productId());
         if (prod != null && prod.taxable()) {
           double itemPrice = prod.price();
-          int itemQty = (Integer) item.get("qty");
+          int itemQty = item.qty();
           tax += itemQty * itemPrice * TAX;
         }
       }
@@ -101,7 +102,7 @@ public class PricingService {
   }
 
   public static Discounts computeDiscounts(
-      double sub, String level, List<Map<String, Object>> items, double pts, double maxDiscount) {
+          double sub, String level, List<Order> items, double pts, double maxDiscount) {
     double disc = 0.0;
     if (sub > 50) disc = sub * 0.05;
     if (sub > 100) disc = sub * 0.10;
@@ -109,7 +110,7 @@ public class PricingService {
     if (sub > 1000 && level.equals("PREMIUM")) disc = sub * 0.20;
 
     int dayOfWeek = 0;
-    String firstOrderDate = items.size() > 0 ? (String) items.get(0).get("date") : "";
+    String firstOrderDate = items.size() > 0 ? (String) items.get(0).date() : "";
     if (!firstOrderDate.isEmpty()) {
       try {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");

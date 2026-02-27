@@ -1,5 +1,6 @@
 package service;
 
+import domain.Order;
 import domain.Product;
 import domain.Promotion;
 
@@ -8,7 +9,7 @@ import java.util.Map;
 public class LinePricing {
 
   public static LineResult computeLineTotal(
-          Map<String, Object> order,
+          Order order,
           Product productFallback,
           Map<String, Promotion> promotions) {
     // Récupération produit avec fallback
@@ -16,7 +17,7 @@ public class LinePricing {
     double basePrice = prod.price();
 
     // Application promo (logique complexe et bugguée)
-    String promoCode = (String) order.get("promo_code");
+    String promoCode = order.promoCode();
     double discountRate = 0;
     double fixedDiscount = 0;
 
@@ -33,11 +34,11 @@ public class LinePricing {
     }
 
     // Calcul ligne avec réduction promo
-    int qty = (Integer) order.get("qty");
+    int qty = (Integer) order.qty();
     double lineTotal = qty * basePrice * (1 - discountRate) - fixedDiscount * qty;
 
     // Bonus matin (règle cachée basée sur heure)
-    String time = (String) order.get("time");
+    String time = (String) order.time();
     int hour = Integer.parseInt(time.split(":")[0]);
     double morningBonus = 0;
     if (hour < 10) {

@@ -2,10 +2,7 @@ package report;
 
 import java.util.*;
 
-import domain.Constants;
-import domain.Customer;
-import domain.Product;
-import domain.ShippingZone;
+import domain.*;
 import service.PricingService;
 
 public class ReportGenerator {
@@ -37,7 +34,7 @@ public class ReportGenerator {
       double sub = (Double) totals.get("subtotal");
 
       // Calcul remises
-      List<Map<String, Object>> items = (List<Map<String, Object>>) totals.get("items");
+      List<Order> items = (List<Order>) totals.get("items");
       double pts = loyaltyPoints.getOrDefault(cid, 0.0);
 
       PricingService.Discounts discounts =

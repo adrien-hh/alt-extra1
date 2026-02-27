@@ -2,10 +2,10 @@ package domain;
 
 public record Order(
     String id,
-    String customer_id,
-    String product_id,
+    String customerId,
+    String productId,
     int qty,
-    double unit_price,
+    double unitPrice,
     String date,
-    String promo_code,
+    String promoCode,
     String time) {}

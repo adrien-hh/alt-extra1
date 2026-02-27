@@ -1,9 +1,7 @@
 package io;
 
-import domain.Customer;
-import domain.Product;
-import domain.Promotion;
-import domain.ShippingZone;
+import domain.*;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -93,8 +91,8 @@ public class CsvLoaders {
   }
 
   // Lecture orders (mélange parsing et validation)
-  public static List<Map<String, Object>> loadOrders() throws IOException {
-    List<Map<String, Object>> orders = new ArrayList<>();
+  public static List<Order> loadOrders() throws IOException {
+    List<Order> orders = new ArrayList<>();
     BufferedReader ordReader = new BufferedReader(new FileReader(domain.Paths.ORD_PATH));
     ordReader.readLine(); // skip header
     String ordLine;
@@ -102,22 +100,19 @@ public class CsvLoaders {
       try {
         String[] parts = ordLine.split(",");
         int qty = Integer.parseInt(parts[3]);
-        double price = Double.parseDouble(parts[4]);
+        double unitPrice = Double.parseDouble(parts[4]);
 
-        if (qty <= 0 || price < 0) {
+        if (qty <= 0 || unitPrice < 0) {
           continue; // validation silencieuse
         }
 
-        Map<String, Object> order = new HashMap<>();
-        order.put("id", parts[0]);
-        order.put("customer_id", parts[1]);
-        order.put("product_id", parts[2]);
-        order.put("qty", qty);
-        order.put("unit_price", price);
-        order.put("date", parts.length > 5 ? parts[5] : "");
-        order.put("promo_code", parts.length > 6 ? parts[6] : "");
-        order.put("time", parts.length > 7 ? parts[7] : "12:00");
-        orders.add(order);
+        String id = parts[0];
+        String customerId = parts[1];
+        String productId = parts[2];
+        String date = parts.length > 5 ? parts[5] : "";
+        String promoCode = parts.length > 6 ? parts[6] : "";
+        String time = parts.length > 7 ? parts[7] : "12:00";
+        orders.add(new Order(id, customerId, productId, qty, unitPrice, date, promoCode, time));
       } catch (Exception e) {
         // Skip silencieux
         continue;
